@@ -1,0 +1,71 @@
+version: '2.1'
+services:
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        - API_GATEWAY_URL=${API_GATEWAY_URL}
+        - API_GATEWAY_PORT=${API_GATEWAY_PORT}
+    ports:
+      - 80:80
+    env_file:
+      - .env
+
+  notifications-service:
+    build: ./notifications-service
+    env_file:
+      - .env
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  mysql:
+    image: mysql:5.7
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: KSR
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 5s
+      retries: 10
+
+  movie-service:
+    build: ./movie-service
+    depends_on:
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    env_file:
+      - .env
+
+  api-service:
+    build: ./api-service
+    container_name: api-gateway
+    ports:
+      - ${API_GATEWAY_PORT}:${API_GATEWAY_PORT}
+    env_file:
+      - .env
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mysql_data:
+

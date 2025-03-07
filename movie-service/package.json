@@ -1,0 +1,20 @@
+{
+  "name": "movie-service",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "amqplib": "^0.5.2",
+    "got": "^11.1.3",
+    "movie-service": "file:",
+    "movie-trailer": "latest",
+    "mysql2": "^3.12.0",
+    "node-uuid": "^1.4.8",
+    "sequelize": "^4.38.1"
+  }
+}
