@@ -120,25 +120,32 @@ module.exports = {
 
     async getAll(){
         try {
-            const movies = fakeData.Search; // Lấy danh sách phim từ data.json
+            const movies = fakeData.Search;
             const results = [];
 
             for(const movie of movies){
-                const movieEntity = await Movie.findOne({
+                // First try to find existing movie
+                let movieEntity = await Movie.findOne({
                     where: {
                         imdbID: {[Op.eq]: movie.imdbID}
                     }
                 });
 
-                // Chỉ thêm thông tin từ database nếu movieEntity tồn tại
-                if (movieEntity) {
-                    results.push({
-                        ...movie,
-                        ...movieEntity.toJSON()
+                // If movie doesn't exist in database, create it
+                if (!movieEntity) {
+                    movieEntity = await this.create({
+                        imdbID: movie.imdbID,
+                        title: movie.Title,
+                        hall: Math.floor(Math.random() * 5) + 1,
+                        date: `2024-06-13 ${Math.floor(Math.random() * 12) + 9}:00`
                     });
-                } else {
-                    results.push(movie);
                 }
+
+                // Combine API data with database data
+                results.push({
+                    ...movie,
+                    ...movieEntity.toJSON()
+                });
             }
 
             return results;
